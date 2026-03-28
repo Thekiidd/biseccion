@@ -492,15 +492,11 @@ input:focus {
   height: 320px;
 }
 
-.chart-canvas {
-  display: none;
-  position: absolute;
-  inset: 0;
+#mainChart {
   width: 100% !important;
   height: 100% !important;
+  display: block;
 }
-
-.chart-canvas.active { display: block; }
 
 .chart-placeholder {
   position: absolute;
