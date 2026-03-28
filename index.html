@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Método de Bisección — Análisis Numérico</title>
+  <meta name="description" content="Calculadora interactiva del Método de Bisección numérico con gráficas, tabla de iteraciones y análisis de convergencia. Proyecto universitario de Análisis Numérico."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.0/lib/browser/math.js"></script>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Background particles -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="20" cy="20" r="18" stroke="url(#grad1)" stroke-width="2"/>
+            <path d="M8 20 Q14 8 20 20 Q26 32 32 20" stroke="url(#grad1)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <line x1="20" y1="6" x2="20" y2="34" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <circle cx="20" cy="20" r="3" fill="#a855f7"/>
+            <defs>
+              <linearGradient id="grad1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#a855f7"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">Bisección Numérica</span>
+          <span class="logo-sub">Métodos Numéricos — Proyecto Universitario</span>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="badge badge-new">Análisis Numérico</span>
+        <span class="badge badge-info">Interactivo</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Método de <span class="gradient-text">Bisección</span>
+      </h1>
+      <p class="hero-desc">
+        Herramienta interactiva para encontrar raíces de ecuaciones no lineales. Ingresa f(x) y el intervalo [a, b] donde f(a)·f(b) &lt; 0 y visualiza la convergencia iteración a iteración.
+      </p>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-val" id="statIter">—</span><span class="stat-label">Iteraciones</span></div>
+        <div class="stat-sep"></div>
+        <div class="stat"><span class="stat-val" id="statError">—</span><span class="stat-label">Error Final</span></div>
+        <div class="stat-sep"></div>
+        <div class="stat"><span class="stat-val" id="statRoot">—</span><span class="stat-label">Raíz Aprox.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main layout -->
+  <main class="main-layout">
+    <!-- Input panel -->
+    <aside class="panel panel-input">
+      <div class="panel-header">
+        <div class="panel-icon icon-purple">⚙</div>
+        <h2>Configuración</h2>
+      </div>
+
+      <div class="form-group">
+        <label for="funcInput">Función f(x)</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">f(x) =</span>
+          <input type="text" id="funcInput" class="code-input" value="x^3 - x - 2" autocomplete="off" spellcheck="false"/>
+        </div>
+        <div class="input-hint">Usa sintaxis matemática: <code>x^2</code>, <code>sin(x)</code>, <code>exp(x)</code>, <code>log(x)</code></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="aInput">Límite inferior <em>a</em></label>
+          <input type="number" id="aInput" value="1" step="0.1"/>
+        </div>
+        <div class="form-group">
+          <label for="bInput">Límite superior <em>b</em></label>
+          <input type="number" id="bInput" value="2" step="0.1"/>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tolInput">Tolerancia ε</label>
+          <input type="number" id="tolInput" value="0.0001" step="0.00001" min="1e-15" max="1"/>
+        </div>
+        <div class="form-group">
+          <label for="maxIterInput">Máx. Iteraciones</label>
+          <input type="number" id="maxIterInput" value="50" min="1" max="200"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Criterio de parada</label>
+        <div class="radio-group">
+          <label class="radio-option">
+            <input type="radio" name="stopCrit" value="abs" checked/>
+            <span class="radio-custom"></span>
+            Error absoluto |b - a| / 2
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="stopCrit" value="rel"/>
+            <span class="radio-custom"></span>
+            Error relativo |Δc / c|
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="stopCrit" value="func"/>
+            <span class="radio-custom"></span>
+            Valor función |f(c)|
+          </label>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" id="btnCalculate" onclick="runBisection()">
+          <span class="btn-icon">▶</span> Calcular
+        </button>
+        <button class="btn btn-outline" onclick="resetAll()">
+          <span class="btn-icon">↺</span> Limpiar
+        </button>
+      </div>
+
+      <!-- Quick examples -->
+      <div class="examples-section">
+        <div class="examples-header">Ejemplos rápidos</div>
+        <div class="examples-grid">
+          <button class="example-chip" onclick="loadExample('x^3 - x - 2', 1, 2)">x³-x-2</button>
+          <button class="example-chip" onclick="loadExample('cos(x) - x', 0, 1)">cos(x)-x</button>
+          <button class="example-chip" onclick="loadExample('x^2 - 2', 1, 2)">x²-2</button>
+          <button class="example-chip" onclick="loadExample('exp(x) - 3', 0, 2)">eˣ-3</button>
+          <button class="example-chip" onclick="loadExample('x^3 - 2*x - 5', 2, 3)">x³-2x-5</button>
+          <button class="example-chip" onclick="loadExample('sin(x) - x/2', 1, 3)">sin-x/2</button>
+          <button class="example-chip" onclick="loadExample('log(x) - 1', 2, 4)">ln(x)-1</button>
+          <button class="example-chip" onclick="loadExample('x^4 - 16', 1, 3)">x⁴-16</button>
+          <button class="example-chip" onclick="loadExample('x - cos(x)', 0, 2)">x-cos(x)</button>
+          <button class="example-chip" onclick="loadExample('x^2 - sin(x)', 0.5, 1.5)">x²-sin(x)</button>
+          <button class="example-chip" onclick="loadExample('tan(x) - x - 1', 1, 1.4)">tan(x)-x-1</button>
+          <button class="example-chip" onclick="loadExample('sqrt(x) - cos(x)', 0, 1)">√x-cos(x)</button>
+        </div>
+      </div>
+
+      <!-- Status indicator -->
+      <div class="status-box" id="statusBox" style="display:none">
+        <div class="status-icon" id="statusIcon"></div>
+        <div class="status-msg" id="statusMsg"></div>
+      </div>
+    </aside>
+
+    <!-- Charts & Results -->
+    <div class="panel-right">
+      <!-- Chart tabs -->
+      <div class="panel panel-chart">
+        <div class="panel-header">
+          <div class="panel-icon icon-blue">📈</div>
+          <h2>Visualización</h2>
+          <div class="tab-bar">
+            <button class="tab active" id="tab-func" onclick="switchTab('func')">Función</button>
+            <button class="tab" id="tab-conv" onclick="switchTab('conv')">Convergencia</button>
+            <button class="tab" id="tab-error" onclick="switchTab('error')">Error</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartFunc" class="chart-canvas active"></canvas>
+          <canvas id="chartConv" class="chart-canvas"></canvas>
+          <canvas id="chartError" class="chart-canvas"></canvas>
+          <div class="chart-placeholder" id="chartPlaceholder">
+            <div class="placeholder-icon">∫</div>
+            <p>Ingresa una función y presiona <strong>Calcular</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div class="summary-cards" id="summaryCards" style="display:none">
+        <div class="summary-card card-root">
+          <div class="card-label">Raíz aproximada</div>
+          <div class="card-val" id="cardRoot">—</div>
+        </div>
+        <div class="summary-card card-error">
+          <div class="card-label">Error final</div>
+          <div class="card-val" id="cardError">—</div>
+        </div>
+        <div class="summary-card card-iter">
+          <div class="card-label">Iteraciones</div>
+          <div class="card-val" id="cardIter">—</div>
+        </div>
+        <div class="summary-card card-fval">
+          <div class="card-label">f(raíz)</div>
+          <div class="card-val" id="cardFval">—</div>
+        </div>
+      </div>
+
+      <!-- Iteration table -->
+      <div class="panel panel-table" id="panelTable" style="display:none">
+        <div class="panel-header">
+          <div class="panel-icon icon-green">📋</div>
+          <h2>Tabla de Iteraciones</h2>
+          <button class="btn btn-sm btn-outline" onclick="exportCSV()">⬇ CSV</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="iter-table" id="iterTable">
+            <thead>
+              <tr>
+                <th>n</th>
+                <th>a</th>
+                <th>b</th>
+                <th>c = (a+b)/2</th>
+                <th>f(a)</th>
+                <th>f(c)</th>
+                <th>f(b)</th>
+                <th>Error</th>
+              </tr>
+            </thead>
+            <tbody id="iterBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Theory section -->
+  <section class="theory-section">
+    <h2 class="section-title">¿Cómo funciona el Método de Bisección?</h2>
+    <div class="theory-grid">
+      <div class="theory-card">
+        <div class="theory-num">01</div>
+        <h3>Teorema de Bolzano</h3>
+        <p>Si f es continua en [a, b] y f(a)·f(b) &lt; 0, entonces existe al menos una raíz en (a, b).</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-num">02</div>
+        <h3>Punto Medio</h3>
+        <p>Se calcula c = (a + b) / 2 y se evalúa f(c). Si f(a)·f(c) &lt; 0, la raíz está en [a, c]; si no, en [c, b].</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-num">03</div>
+        <h3>Convergencia</h3>
+        <p>Cada iteración reduce el intervalo a la mitad. El error está acotado por (b - a) / 2ⁿ, garantizando convergencia lineal.</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-num">04</div>
+        <h3>Ventajas</h3>
+        <p>Siempre converge si se cumple el criterio de Bolzano. Es robusto y simple, aunque más lento que métodos de orden superior.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Método de Bisección &mdash; Proyecto de Métodos Numéricos &mdash; Análisis Numérico &copy; 2025</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
